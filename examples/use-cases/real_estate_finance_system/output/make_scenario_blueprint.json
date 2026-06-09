@@ -1,0 +1,45 @@
+{
+  "name": "real-estate-finance-automation",
+  "version": 2,
+  "target_workbook": "Finance_RealEstate_v1",
+  "principles": [
+    "Write external data only to RAW_Transactions until validation is complete.",
+    "Use external_id and unique_key before appending to prevent duplicates.",
+    "Create Tasks_Manager rows for exceptions instead of overwriting financial history."
+  ],
+  "field_mapping": {
+    "external_id": "Provider transaction/payment id",
+    "txn_date": "Provider transaction date",
+    "counterparty": "Customer / supplier name",
+    "amount": "Amount before VAT when available",
+    "vat": "VAT amount or zero",
+    "direction_raw": "income/credit or expense/debit",
+    "status_raw": "paid/success/completed/pending/failed"
+  },
+  "scenarios": [
+    {
+      "name": "ingestion",
+      "trigger": "Webhook / EasyCard / CSV / API",
+      "modules": [
+        "Receive transaction payload",
+        "Normalize date, amount, VAT, status, source and external_id",
+        "Search RAW_Transactions by external_id and unique_key",
+        "Append only new transactions to RAW_Transactions",
+        "Route malformed records to an alert path"
+      ],
+      "writes_to": "RAW_Transactions",
+      "duplicate_guard": "external_id + unique_key"
+    },
+    {
+      "name": "daily_control",
+      "trigger": "Scheduler at 08:00",
+      "modules": [
+        "Search duplicate_flag='כפול' and error_flag='שגיאה'",
+        "Create or update Tasks_Manager rows",
+        "Send management summary by email / Slack / WhatsApp gateway"
+      ],
+      "writes_to": "Tasks_Manager",
+      "duplicate_guard": "related_transaction_id + task_type + status != הושלם"
+    }
+  ]
+}
