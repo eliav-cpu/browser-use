@@ -1,0 +1,1 @@
+created_at,source,external_id,txn_date,counterparty,description,amount,vat,currency,payment_method,project_raw,category_raw,direction_raw,status_raw,normalized_type,normalized_category,normalized_project,status_normalized,duplicate_flag,error_flag,unique_key
